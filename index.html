@@ -184,10 +184,12 @@ const AD_DEMO=false;
    until this is replaced with a real https:// URL. */
 const SUPPORT_URL='PASTE_REAL_PAYMENT_LINK_HERE';
 const supportOn=u=>/^https:\/\//.test(u===undefined?SUPPORT_URL:u);
-/* Analytics: PostHog HTTP capture. BLOCKED until a real project API key is pasted
+/* Analytics: PostHog HTTP capture. BLOCKED until a real PROJECT TOKEN is pasted
    into key below — until then events only buffer locally in window.nvEvents.
+   Use ONLY the PostHog Project Token (starts with "phc_"), NEVER a personal API key.
    No names, emails or other personal data are collected; distinct_id is an
-   anonymous random device id. No session recording, no DOM capture. */
+   anonymous random device id; $process_person_profile:false keeps events
+   anonymous on PostHog's side. No session recording, no DOM capture. */
 const ANALYTICS_CONFIG={provider:'posthog',key:'',host:'https://eu.i.posthog.com'};
 const ANALYTICS_SEND=['game_start','game_over','retry','share_attempt','share_success','support_click'];
 window.nvEvents=window.nvEvents||[];
@@ -200,8 +202,10 @@ function trackEvent(name,props){
     try{
       let did=localStorage.getItem('nv_did');
       if(!did){did=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('nv_did',did);}
-      fetch(ANALYTICS_CONFIG.host+'/capture/',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({api_key:ANALYTICS_CONFIG.key,event:name,distinct_id:did,properties:e.props})});
+      fetch(ANALYTICS_CONFIG.host+'/i/v0/e/',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({api_key:ANALYTICS_CONFIG.key,event:name,distinct_id:did,
+          properties:Object.assign({},e.props,{$process_person_profile:false}),
+          timestamp:new Date(e.ts).toISOString()})});
     }catch(_){}
   }
 }
