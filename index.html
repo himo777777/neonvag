@@ -198,7 +198,7 @@ const SAFE_TOP=()=>parseFloat(getComputedStyle(document.documentElement).getProp
 /* ---------- i18n ---------- */
 const STR={
 sv:{tag:'En touch. Noll nåd.',start:'eller tryck var som helst',how:'HÅLL = stig   ·   SLÄPP = dyk',best:'REKORD',scoreLbl:'POÄNG',share:'DELA REKORD',again:'SPELA IGEN',revive:'FORTSÄTT – ANNONSDEMO',adT:'ANNONS-DEMO',adN:'Här kopplas AdMob / Unity Ads in vid publicering.',newBest:'NYTT REKORD!',surf:'KANTSURF!',paused:'PAUSAD',resume:'TRYCK FÖR ATT FORTSÄTTA',shareT:s=>'Jag fick '+s+' poäng i NEONVÅG – kan du slå mig?',lock:n=>'Låses upp vid '+n+' poäng',shShared:'Delat!',shCopied:'Text & länk kopierad!',shCancel:'Delning avbruten',shFail:'Delning misslyckades',daily:'DAGENS BANA',endless:'OÄNDLIG',dailyBest:'DITT DAGSREKORD',dailyTag:'DAGENS BANA',frenzy:'RUS!',shareTD:(s,d)=>'Dagens bana '+d+' i NEONVÅG: '+s+' poäng – slå det om du kan!',stats:(m,o,x)=>'Distans '+m+' m · Kulor '+o+' · Max ×'+x,
-levels:'NIVÅER',lvlSelect:'VÄLJ NIVÅ',back:'TILLBAKA',next:'NÄSTA NIVÅ',retry:'FÖRSÖK IGEN',lvlN:n=>'NIVÅ '+n,lvlDone:'NIVÅ KLAR!',lvlFail:'NÄSTAN!',goalLbl:'MÅL',
+levels:'NIVÅER',lvlSelect:'VÄLJ NIVÅ',back:'TILLBAKA',next:'NÄSTA NIVÅ',retry:'FÖRSÖK IGEN',lvlN:n=>'NIVÅ '+n,lvlDone:'NIVÅ KLAR!',lvlFail:'NÄSTAN!',goalLbl:'MÅL',menu:'HUVUDMENY',
 puShield:'SKÖLD!',puMagnet:'MAGNET!',puSlow:'SLOW-MO!',puShieldUsed:'SKÖLDEN RÄDDADE DIG!',
 achUnlocked:'🏆 PRESTATION!',streak:'DAGLIG SVIT',streakDays:n=>'🔥 '+n+(n===1?' dag':' dagar'),
 lockLvl:n=>'Klara '+n+' nivåer för att låsa upp',lockAch:a=>'Kräver prestation: '+a,lockStreak:n=>'Kräver '+n+' dagars svit',
@@ -214,7 +214,7 @@ ach_streak3:'TREDAGARSSVIT',achd_streak3:'Spela dagens bana 3 dagar i rad',
 ach_streak7:'VECKOSVIT',achd_streak7:'7 dagar i rad',
 ach_level5:'BANVETERAN',achd_level5:'Klara nivå 5'},
 en:{tag:'One touch. Zero mercy.',start:'or tap anywhere',how:'HOLD = rise   ·   RELEASE = dive',best:'BEST',scoreLbl:'SCORE',share:'SHARE SCORE',again:'PLAY AGAIN',revive:'CONTINUE – AD DEMO',adT:'AD DEMO',adN:'AdMob / Unity Ads plugs in here on release.',newBest:'NEW BEST!',surf:'EDGE SURF!',paused:'PAUSED',resume:'TAP TO RESUME',shareT:s=>'I scored '+s+' in NEONVÅG – beat that!',lock:n=>'Unlocks at '+n+' points',shShared:'Shared!',shCopied:'Text & link copied!',shCancel:'Share cancelled',shFail:'Share failed',daily:'DAILY TRACK',endless:'ENDLESS',dailyBest:'YOUR DAILY BEST',dailyTag:'DAILY TRACK',frenzy:'RUSH!',shareTD:(s,d)=>'Daily track '+d+' in NEONVÅG: '+s+' points – beat it if you can!',stats:(m,o,x)=>'Distance '+m+' m · Orbs '+o+' · Max ×'+x,
-levels:'LEVELS',lvlSelect:'SELECT LEVEL',back:'BACK',next:'NEXT LEVEL',retry:'TRY AGAIN',lvlN:n=>'LEVEL '+n,lvlDone:'LEVEL COMPLETE!',lvlFail:'SO CLOSE!',goalLbl:'GOAL',
+levels:'LEVELS',lvlSelect:'SELECT LEVEL',back:'BACK',next:'NEXT LEVEL',retry:'TRY AGAIN',lvlN:n=>'LEVEL '+n,lvlDone:'LEVEL COMPLETE!',lvlFail:'SO CLOSE!',goalLbl:'GOAL',menu:'MAIN MENU',
 puShield:'SHIELD!',puMagnet:'MAGNET!',puSlow:'SLOW-MO!',puShieldUsed:'SHIELD SAVED YOU!',
 achUnlocked:'🏆 ACHIEVEMENT!',streak:'DAILY STREAK',streakDays:n=>'🔥 '+n+(n===1?' day':' days'),
 lockLvl:n=>'Clear '+n+' levels to unlock',lockAch:a=>'Requires achievement: '+a,lockStreak:n=>'Requires a '+n+'-day streak',
@@ -632,7 +632,8 @@ function renderOverPanel(){
   $('finalScore').textContent=sc;
   $('btnShare').classList.toggle('hidden',isLvl);
   $('btnNext').classList.toggle('hidden',!(isLvl&&run.won&&curLvlIdx+1<LEVELS.length));
-  $('btnMenu').classList.toggle('hidden',!isLvl);
+  $('btnMenu').classList.remove('hidden');
+  $('btnMenu').textContent=isLvl?t('levels'):t('menu');
   $('overStars').classList.toggle('hidden',!isLvl);
   $('btnRevive').classList.toggle('hidden',isLvl||!AD_DEMO||run.revUsed);
   $('overStats').textContent=t('stats')(Math.floor(run.dist/(46*S)),run.orbs,run.maxMult);
@@ -668,6 +669,7 @@ function showOver(){
 }
 
 function startGame(m,lvlIdx){
+  ac(); /* audio unlock: buttons bypass press(), so wake the AudioContext here too */
   mode=m||'endless';
   if(mode==='level'){
     curLvlIdx=lvlIdx|0;curLvl=LEVELS[curLvlIdx];
@@ -773,7 +775,6 @@ function applyStrings(){
   $('lvTitle').textContent=t('lvlSelect');
   $('btnLvBack').textContent=t('back');
   $('btnNext').textContent=t('next');
-  $('btnMenu').textContent=t('levels');
   $('achHead').textContent=t('achUnlocked');
   $('achCount').textContent='🏆 '+achSet.size+'/'+ACH_TOTAL;
   $('streakLabel').textContent=t('streak');
@@ -798,7 +799,12 @@ $('btnAgain').onclick=()=>{tone(440,.08);
   else{trackEvent('replay_start',{mode:mode});startGame(mode);}
 };
 $('btnNext').onclick=()=>{tone(440,.08);startGame('level',curLvlIdx+1);};
-$('btnMenu').onclick=()=>{tone(440,.08);hide($('over'));newRun(true);state=M.MENU;buildLevels();show($('levels'));show($('toggles'));};
+$('btnMenu').onclick=()=>{
+  tone(440,.08);hide($('over'));newRun(true);state=M.MENU;
+  if(mode==='level'){buildLevels();show($('levels'));}
+  else{applyStrings();refreshDots();show($('menu'));}
+  show($('toggles'));
+};
 $('btnLevels').onclick=()=>{tone(440,.08);buildLevels();hide($('menu'));show($('levels'));};
 $('btnLvBack').onclick=()=>{tone(440,.06);hide($('levels'));show($('menu'));};
 $('btnDaily').onclick=()=>{tone(440,.08);startGame('daily');};
