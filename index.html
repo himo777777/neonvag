@@ -215,7 +215,7 @@ const supportOn=u=>/^https:\/\//.test(u===undefined?SUPPORT_URL:u);
    No names, emails or other personal data are collected; distinct_id is an
    anonymous random device id; $process_person_profile:false keeps events
    anonymous on PostHog's side. No session recording, no DOM capture. */
-const ANALYTICS_CONFIG={provider:'posthog',key:'',host:'https://eu.i.posthog.com'};
+const ANALYTICS_CONFIG={provider:'posthog',key:'phc_vfJ6BPXXjSb6BiAZ3b3KYQjcFx59rMEFVLN2HUujCQrF',host:'https://eu.i.posthog.com'};
 const ANALYTICS_SEND=['game_start','game_over','retry','share_attempt','share_success','support_click'];
 /* Consent: analytics stays OFF until the player actively selects
    "Allow anonymous analytics". nv_consent: '1' allow / '0' declined / absent = not asked. */
@@ -228,9 +228,9 @@ function setConsent(allow){
 /* Privacy notice placeholders — the full notice link stays hidden until ALL
    placeholders below are replaced with real values. */
 const PRIVACY_INFO={
-  owner:'PASTE_RESPONSIBLE_COMPANY_OR_PERSON',
-  email:'PASTE_CONTACT_EMAIL',
-  retention:'PASTE_RETENTION_PERIOD_E_G_12_MONTHS'
+  owner:'Himan Ibrahim',
+  email:'himanibrahim@gmail.com',
+  retention:'12 months, after which events are deleted'
 };
 const privacyReady=()=>!/^PASTE_/.test(PRIVACY_INFO.owner)&&!/^PASTE_/.test(PRIVACY_INFO.email)&&!/^PASTE_/.test(PRIVACY_INFO.retention);
 /* Campaign attribution: ONLY these four params, max 64 chars each.
