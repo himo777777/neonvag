@@ -71,6 +71,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#fff
 .modes .btn{margin-top:10px}
 .btn-gold{background:linear-gradient(90deg,#ffd23f,#ff8a3d);border:none;box-shadow:0 0 24px rgba(255,210,63,.4);color:#231a00}
 .btn-support{opacity:.55;font-size:11px;padding:10px 0;background:transparent;border:1px solid rgba(255,255,255,.14);letter-spacing:.18em}
+.privBody{font-size:12px;line-height:1.55;opacity:.8;margin:6px auto 12px;max-width:270px}
+.privStatus{font-size:11px;letter-spacing:.18em;color:#ffd23f;margin-bottom:4px}
+.privDoc{font-size:12px;line-height:1.55;opacity:.85}
+.privDoc h4{margin:12px 0 3px;font-size:10px;letter-spacing:.16em;color:#22e5ff}
 .overStats{margin-top:14px;font-size:12px;letter-spacing:.12em;opacity:.6}
 .dailyTag{margin-top:6px;font-size:11px;letter-spacing:.28em;color:#ffd23f;opacity:.9}
 .lvTitle{font-weight:900;letter-spacing:.28em;font-size:15px;margin-bottom:14px}
@@ -107,6 +111,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#fff
       <button class="btn" id="btnLevels"></button>
       <button class="btn" id="btnEndless"></button>
       <button class="btn btn-support hidden" id="btnSupport"></button>
+      <button class="btn btn-support" id="btnPrivacy"></button>
     </div>
     <p class="start pulse" id="startHint"></p>
     <p class="how" id="howHint"></p>
@@ -136,6 +141,26 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#fff
     <div class="lvTitle" id="lvTitle"></div>
     <div class="lvGrid" id="lvGrid"></div>
     <button class="btn" id="btnLvBack"></button>
+  </div>
+</div>
+
+<div id="privacy" class="overlay hidden">
+  <div class="panel" style="max-width:min(340px,88vw)">
+    <div class="lvTitle" id="privTitle"></div>
+    <p class="privBody" id="privBody"></p>
+    <div class="privStatus" id="privStatus"></div>
+    <button class="btn" id="btnAllow"></button>
+    <button class="btn" id="btnDecline"></button>
+    <button class="btn btn-support hidden" id="btnPrivDoc"></button>
+    <button class="btn" id="btnPrivBack"></button>
+  </div>
+</div>
+
+<div id="privdoc" class="overlay hidden">
+  <div class="panel" style="max-width:min(380px,90vw);max-height:80vh;overflow:auto;text-align:left">
+    <div class="lvTitle" style="text-align:center" id="privDocTitle"></div>
+    <div class="privDoc" id="privDocBody"></div>
+    <button class="btn" id="btnPrivDocBack" style="margin-top:16px"></button>
   </div>
 </div>
 
@@ -192,13 +217,35 @@ const supportOn=u=>/^https:\/\//.test(u===undefined?SUPPORT_URL:u);
    anonymous on PostHog's side. No session recording, no DOM capture. */
 const ANALYTICS_CONFIG={provider:'posthog',key:'',host:'https://eu.i.posthog.com'};
 const ANALYTICS_SEND=['game_start','game_over','retry','share_attempt','share_success','support_click'];
+/* Consent: analytics stays OFF until the player actively selects
+   "Allow anonymous analytics". nv_consent: '1' allow / '0' declined / absent = not asked. */
+let consent=localStorage.getItem('nv_consent');
+function setConsent(allow){
+  consent=allow?'1':'0';
+  localStorage.setItem('nv_consent',consent);
+  if(!allow)try{localStorage.removeItem('nv_did');}catch(_){}
+}
+/* Privacy notice placeholders — the full notice link stays hidden until ALL
+   placeholders below are replaced with real values. */
+const PRIVACY_INFO={
+  owner:'PASTE_RESPONSIBLE_COMPANY_OR_PERSON',
+  email:'PASTE_CONTACT_EMAIL',
+  retention:'PASTE_RETENTION_PERIOD_E_G_12_MONTHS'
+};
+const privacyReady=()=>!/^PASTE_/.test(PRIVACY_INFO.owner)&&!/^PASTE_/.test(PRIVACY_INFO.email)&&!/^PASTE_/.test(PRIVACY_INFO.retention);
+/* Campaign attribution: ONLY these four params, max 64 chars each.
+   Never the full URL, referrer or arbitrary query parameters. */
+const CAMPAIGN=(()=>{const o={};try{
+  const p=new URLSearchParams(location.search);
+  ['ref','utm_source','utm_campaign','utm_content'].forEach(k=>{const v=p.get(k);if(v)o[k]=(''+v).slice(0,64);});
+}catch(_){}return o;})();
 window.nvEvents=window.nvEvents||[];
 function trackEvent(name,props){
   const e={name:name,props:props||{},ts:Date.now(),lang:lang};
   window.nvEvents.push(e);
   if(window.nvEvents.length>200)window.nvEvents.shift();
   try{console.debug('[nv-analytics]',name,e.props);}catch(_){}
-  if(ANALYTICS_CONFIG.key&&ANALYTICS_SEND.indexOf(name)>-1){
+  if(ANALYTICS_CONFIG.key&&consent==='1'&&ANALYTICS_SEND.indexOf(name)>-1){
     try{
       let did=localStorage.getItem('nv_did');
       if(!did){did=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('nv_did',did);}
@@ -221,6 +268,7 @@ const SAFE_TOP=()=>parseFloat(getComputedStyle(document.documentElement).getProp
 const STR={
 sv:{tag:'En touch. Noll nåd.',start:'eller tryck var som helst',how:'HÅLL = stig   ·   SLÄPP = dyk',best:'REKORD',scoreLbl:'POÄNG',share:'DELA REKORD',again:'SPELA IGEN',revive:'FORTSÄTT – ANNONSDEMO',adT:'ANNONS-DEMO',adN:'Här kopplas AdMob / Unity Ads in vid publicering.',newBest:'NYTT REKORD!',surf:'KANTSURF!',paused:'PAUSAD',resume:'TRYCK FÖR ATT FORTSÄTTA',shareT:s=>'Jag fick '+s+' poäng i NEONVÅG – kan du slå mig?',lock:n=>'Låses upp vid '+n+' poäng',shShared:'Delat!',shCopied:'Text & länk kopierad!',shCancel:'Delning avbruten',shFail:'Delning misslyckades',daily:'DAGENS BANA',endless:'OÄNDLIG',dailyBest:'DITT DAGSREKORD',dailyTag:'DAGENS BANA',frenzy:'RUS!',shareTD:(s,d)=>'Dagens bana '+d+' i NEONVÅG: '+s+' poäng – slå det om du kan!',stats:(m,o,x)=>'Distans '+m+' m · Kulor '+o+' · Max ×'+x,
 levels:'NIVÅER',lvlSelect:'VÄLJ NIVÅ',back:'TILLBAKA',next:'NÄSTA NIVÅ',retry:'FÖRSÖK IGEN',lvlN:n=>'NIVÅ '+n,lvlDone:'NIVÅ KLAR!',lvlFail:'NÄSTAN!',goalLbl:'MÅL',menu:'HUVUDMENY',support:'SUPPORTA NEONVÅG',
+privacy:'INTEGRITET & ANALYS',privacyBody:'Endast anonym spelstatistik (startade spel, poäng, delningar). Inga namn, ingen e-post, ingen spårning mellan sajter. Data behandlas av PostHog på EU-servrar. Du kan ändra ditt val här när som helst.',consentAllow:'Tillåt anonym analys',consentDecline:'Spela utan analys',statusOn:'ANALYS: PÅ (ANONYM)',statusOff:'ANALYS: AV',privacyFull:'Fullständig integritetsinformation',privacyDocT:'INTEGRITETSINFORMATION',
 puShield:'SKÖLD!',puMagnet:'MAGNET!',puSlow:'SLOW-MO!',puShieldUsed:'SKÖLDEN RÄDDADE DIG!',
 achUnlocked:'🏆 PRESTATION!',streak:'DAGLIG SVIT',streakDays:n=>'🔥 '+n+(n===1?' dag':' dagar'),
 lockLvl:n=>'Klara '+n+' nivåer för att låsa upp',lockAch:a=>'Kräver prestation: '+a,lockStreak:n=>'Kräver '+n+' dagars svit',
@@ -237,6 +285,7 @@ ach_streak7:'VECKOSVIT',achd_streak7:'7 dagar i rad',
 ach_level5:'BANVETERAN',achd_level5:'Klara nivå 5'},
 en:{tag:'One touch. Zero mercy.',start:'or tap anywhere',how:'HOLD = rise   ·   RELEASE = dive',best:'BEST',scoreLbl:'SCORE',share:'SHARE SCORE',again:'PLAY AGAIN',revive:'CONTINUE – AD DEMO',adT:'AD DEMO',adN:'AdMob / Unity Ads plugs in here on release.',newBest:'NEW BEST!',surf:'EDGE SURF!',paused:'PAUSED',resume:'TAP TO RESUME',shareT:s=>'I scored '+s+' in NEONVÅG – beat that!',lock:n=>'Unlocks at '+n+' points',shShared:'Shared!',shCopied:'Text & link copied!',shCancel:'Share cancelled',shFail:'Share failed',daily:'DAILY TRACK',endless:'ENDLESS',dailyBest:'YOUR DAILY BEST',dailyTag:'DAILY TRACK',frenzy:'RUSH!',shareTD:(s,d)=>'Daily track '+d+' in NEONVÅG: '+s+' points – beat it if you can!',stats:(m,o,x)=>'Distance '+m+' m · Orbs '+o+' · Max ×'+x,
 levels:'LEVELS',lvlSelect:'SELECT LEVEL',back:'BACK',next:'NEXT LEVEL',retry:'TRY AGAIN',lvlN:n=>'LEVEL '+n,lvlDone:'LEVEL COMPLETE!',lvlFail:'SO CLOSE!',goalLbl:'GOAL',menu:'MAIN MENU',support:'SUPPORT NEONVÅG',
+privacy:'PRIVACY & ANALYTICS',privacyBody:'Anonymous gameplay statistics only (games played, scores, shares). No names, no emails, no cross-site tracking. Data is processed by PostHog on EU servers. You can change this choice here at any time.',consentAllow:'Allow anonymous analytics',consentDecline:'Play without analytics',statusOn:'ANALYTICS: ON (ANONYMOUS)',statusOff:'ANALYTICS: OFF',privacyFull:'Full privacy notice',privacyDocT:'PRIVACY NOTICE',
 puShield:'SHIELD!',puMagnet:'MAGNET!',puSlow:'SLOW-MO!',puShieldUsed:'SHIELD SAVED YOU!',
 achUnlocked:'🏆 ACHIEVEMENT!',streak:'DAILY STREAK',streakDays:n=>'🔥 '+n+(n===1?' day':' days'),
 lockLvl:n=>'Clear '+n+' levels to unlock',lockAch:a=>'Requires achievement: '+a,lockStreak:n=>'Requires a '+n+'-day streak',
@@ -701,12 +750,12 @@ function startGame(m,lvlIdx){
   mode=m||'endless';
   if(mode==='level'){
     curLvlIdx=lvlIdx|0;curLvl=LEVELS[curLvlIdx];
-    trackEvent('game_start',{mode:'level',level:curLvlIdx+1});
+    trackEvent('game_start',Object.assign({mode:'level',level:curLvlIdx+1},CAMPAIGN));
     trackEvent('level_start',{level:curLvlIdx});
     newRun(false,curLvl.seed);
   }else{
     curLvl=null;
-    trackEvent('game_start',{mode:mode});
+    trackEvent('game_start',Object.assign({mode:mode},CAMPAIGN));
     trackEvent(mode==='daily'?'daily_start':'endless_start',{day:DAY});
     newRun(false,mode==='daily'?dailySeed():undefined);
     if(mode==='daily')updateStreak();
@@ -739,7 +788,7 @@ function press(e){
   if(e.target.closest('button')||e.target.closest('.sel'))return;
   if(e.cancelable)e.preventDefault();
   ac();
-  if(state===M.MENU){if($('levels').classList.contains('hidden'))startGame();}
+  if(state===M.MENU){if($('levels').classList.contains('hidden')&&$('privacy').classList.contains('hidden')&&$('privdoc').classList.contains('hidden'))startGame();}
   else if(state===M.PLAY){run.hold=true;hide($('hint'));}
   else if(state===M.PAUSE)resumeGame();
 }
@@ -751,7 +800,7 @@ addEventListener('contextmenu',e=>e.preventDefault());
 addEventListener('keydown',e=>{
   if(e.code==='Space'||e.code==='ArrowUp'){
     e.preventDefault();ac();
-    if(state===M.MENU){if($('levels').classList.contains('hidden'))startGame();}
+    if(state===M.MENU){if($('levels').classList.contains('hidden')&&$('privacy').classList.contains('hidden')&&$('privdoc').classList.contains('hidden'))startGame();}
     else if(state===M.PLAY)run.hold=true;
     else if(state===M.PAUSE)resumeGame();
   }
@@ -807,6 +856,16 @@ function applyStrings(){
   $('btnSupport').textContent=t('support');
   $('btnSupport2').textContent=t('support');
   updateSupportBtns();
+  $('btnPrivacy').textContent=t('privacy');
+  $('privTitle').textContent=t('privacy');
+  $('privBody').textContent=t('privacyBody');
+  $('btnAllow').textContent=t('consentAllow');
+  $('btnDecline').textContent=t('consentDecline');
+  $('btnPrivBack').textContent=t('back');
+  $('btnPrivDoc').textContent=t('privacyFull');
+  $('privDocTitle').textContent=t('privacyDocT');
+  $('btnPrivDocBack').textContent=t('back');
+  refreshPrivacyUI();
   $('achHead').textContent=t('achUnlocked');
   $('achCount').textContent='🏆 '+achSet.size+'/'+ACH_TOTAL;
   $('streakLabel').textContent=t('streak');
@@ -842,6 +901,32 @@ $('btnLvBack').onclick=()=>{tone(440,.06);hide($('levels'));show($('menu'));};
 $('btnDaily').onclick=()=>{tone(440,.08);startGame('daily');};
 $('btnEndless').onclick=()=>{tone(440,.08);startGame('endless');};
 $('btnShare').onclick=()=>{shareScore();};
+/* ---------- privacy & consent UI ---------- */
+function refreshPrivacyUI(){
+  $('privStatus').textContent=consent==='1'?t('statusOn'):t('statusOff');
+  /* first-time ask (key set, no choice yet): force a choice, no back button */
+  $('btnPrivBack').classList.toggle('hidden',!!(ANALYTICS_CONFIG.key&&consent===null));
+  $('btnPrivDoc').classList.toggle('hidden',!privacyReady());
+}
+function openPrivacy(){refreshPrivacyUI();hide($('menu'));show($('privacy'));}
+function closePrivacy(){hide($('privacy'));if(state===M.MENU)show($('menu'));}
+function buildPrivDoc(){
+  $('privDocBody').innerHTML=
+   '<h4>RESPONSIBLE</h4>'+PRIVACY_INFO.owner+
+   '<h4>CONTACT</h4>'+PRIVACY_INFO.email+
+   '<h4>PURPOSE</h4>Anonymous gameplay statistics used only to improve the game.'+
+   '<h4>DATA COLLECTED</h4>Game events only (game started, game over with score and distance, retry, share attempted, share succeeded, support clicked), an anonymous random device id, and optional campaign tags (ref, utm_source, utm_campaign, utm_content). No names, no email addresses, no cross-site tracking, no session recording.'+
+   '<h4>PROVIDER</h4>PostHog, EU cloud (eu.i.posthog.com).'+
+   '<h4>RETENTION</h4>'+PRIVACY_INFO.retention+
+   '<h4>WITHDRAWING CONSENT</h4>Open PRIVACY &amp; ANALYTICS in the main menu and choose to play without analytics. All future analytics stop immediately and the local device id is deleted.';
+}
+$('btnPrivacy').onclick=()=>{tone(440,.06);openPrivacy();};
+$('btnAllow').onclick=()=>{tone(660,.07);setConsent(true);refreshPrivacyUI();closePrivacy();};
+$('btnDecline').onclick=()=>{tone(440,.07);setConsent(false);refreshPrivacyUI();closePrivacy();};
+$('btnPrivBack').onclick=()=>{tone(440,.06);closePrivacy();};
+$('btnPrivDoc').onclick=()=>{buildPrivDoc();hide($('privacy'));show($('privdoc'));};
+$('btnPrivDocBack').onclick=()=>{hide($('privdoc'));show($('privacy'));};
+
 function updateSupportBtns(u){
   const on=supportOn(u);
   $('btnSupport').classList.toggle('hidden',!on);
@@ -1191,6 +1276,8 @@ applyStrings();
 refreshDots();
 if(!AD_DEMO)hide($('btnRevive'));
 show($('menu'));
+/* first visit with analytics configured: ask before anything is ever sent */
+if(ANALYTICS_CONFIG.key&&consent===null)openPrivacy();
 requestAnimationFrame(loop);
 
 /* direct links: #play = jump straight in, #auto = watch the AI play */
