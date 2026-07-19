@@ -198,7 +198,7 @@ const SAFE_TOP=()=>parseFloat(getComputedStyle(document.documentElement).getProp
 /* ---------- i18n ---------- */
 const STR={
 sv:{tag:'En touch. Noll nåd.',start:'eller tryck var som helst',how:'HÅLL = stig   ·   SLÄPP = dyk',best:'REKORD',scoreLbl:'POÄNG',share:'DELA REKORD',again:'SPELA IGEN',revive:'FORTSÄTT – ANNONSDEMO',adT:'ANNONS-DEMO',adN:'Här kopplas AdMob / Unity Ads in vid publicering.',newBest:'NYTT REKORD!',surf:'KANTSURF!',paused:'PAUSAD',resume:'TRYCK FÖR ATT FORTSÄTTA',shareT:s=>'Jag fick '+s+' poäng i NEONVÅG – kan du slå mig?',lock:n=>'Låses upp vid '+n+' poäng',shShared:'Delat!',shCopied:'Text & länk kopierad!',shCancel:'Delning avbruten',shFail:'Delning misslyckades',daily:'DAGENS BANA',endless:'OÄNDLIG',dailyBest:'DITT DAGSREKORD',dailyTag:'DAGENS BANA',frenzy:'RUS!',shareTD:(s,d)=>'Dagens bana '+d+' i NEONVÅG: '+s+' poäng – slå det om du kan!',stats:(m,o,x)=>'Distans '+m+' m · Kulor '+o+' · Max ×'+x,
-levels:'NIVÅER',lvlSelect:'VÄLJ NIVÅ',back:'TILLBAKA',next:'NÄSTA NIVÅ',retry:'FÖRSÖK IGEN',lvlN:n=>'NIVÅ '+n,lvlDone:'NIVÅ KLAR!',lvlFail:'NÄSTAN!',
+levels:'NIVÅER',lvlSelect:'VÄLJ NIVÅ',back:'TILLBAKA',next:'NÄSTA NIVÅ',retry:'FÖRSÖK IGEN',lvlN:n=>'NIVÅ '+n,lvlDone:'NIVÅ KLAR!',lvlFail:'NÄSTAN!',goalLbl:'MÅL',
 puShield:'SKÖLD!',puMagnet:'MAGNET!',puSlow:'SLOW-MO!',puShieldUsed:'SKÖLDEN RÄDDADE DIG!',
 achUnlocked:'🏆 PRESTATION!',streak:'DAGLIG SVIT',streakDays:n=>'🔥 '+n+(n===1?' dag':' dagar'),
 lockLvl:n=>'Klara '+n+' nivåer för att låsa upp',lockAch:a=>'Kräver prestation: '+a,lockStreak:n=>'Kräver '+n+' dagars svit',
@@ -214,7 +214,7 @@ ach_streak3:'TREDAGARSSVIT',achd_streak3:'Spela dagens bana 3 dagar i rad',
 ach_streak7:'VECKOSVIT',achd_streak7:'7 dagar i rad',
 ach_level5:'BANVETERAN',achd_level5:'Klara nivå 5'},
 en:{tag:'One touch. Zero mercy.',start:'or tap anywhere',how:'HOLD = rise   ·   RELEASE = dive',best:'BEST',scoreLbl:'SCORE',share:'SHARE SCORE',again:'PLAY AGAIN',revive:'CONTINUE – AD DEMO',adT:'AD DEMO',adN:'AdMob / Unity Ads plugs in here on release.',newBest:'NEW BEST!',surf:'EDGE SURF!',paused:'PAUSED',resume:'TAP TO RESUME',shareT:s=>'I scored '+s+' in NEONVÅG – beat that!',lock:n=>'Unlocks at '+n+' points',shShared:'Shared!',shCopied:'Text & link copied!',shCancel:'Share cancelled',shFail:'Share failed',daily:'DAILY TRACK',endless:'ENDLESS',dailyBest:'YOUR DAILY BEST',dailyTag:'DAILY TRACK',frenzy:'RUSH!',shareTD:(s,d)=>'Daily track '+d+' in NEONVÅG: '+s+' points – beat it if you can!',stats:(m,o,x)=>'Distance '+m+' m · Orbs '+o+' · Max ×'+x,
-levels:'LEVELS',lvlSelect:'SELECT LEVEL',back:'BACK',next:'NEXT LEVEL',retry:'TRY AGAIN',lvlN:n=>'LEVEL '+n,lvlDone:'LEVEL COMPLETE!',lvlFail:'SO CLOSE!',
+levels:'LEVELS',lvlSelect:'SELECT LEVEL',back:'BACK',next:'NEXT LEVEL',retry:'TRY AGAIN',lvlN:n=>'LEVEL '+n,lvlDone:'LEVEL COMPLETE!',lvlFail:'SO CLOSE!',goalLbl:'GOAL',
 puShield:'SHIELD!',puMagnet:'MAGNET!',puSlow:'SLOW-MO!',puShieldUsed:'SHIELD SAVED YOU!',
 achUnlocked:'🏆 ACHIEVEMENT!',streak:'DAILY STREAK',streakDays:n=>'🔥 '+n+(n===1?' day':' days'),
 lockLvl:n=>'Clear '+n+' levels to unlock',lockAch:a=>'Requires achievement: '+a,lockStreak:n=>'Requires a '+n+'-day streak',
@@ -257,7 +257,7 @@ function nz(d,v){if(muted||!AC||AC.state!=='running')return;try{const n=Math.flo
 const PENT=[0,3,5,7,10,12,15,17];
 /* ---------- adaptive synthwave soundtrack (A minor, Am-F-C-G, 2 bars / 32 sixteenth-steps) ----------
    Lookahead step-sequencer driven from the rAF loop. Tuning knobs live in MUS. */
-const MUS={bpmMin:104,bpmMax:160,bassV:.16,leadV:.07,kickV:.2,hatV:.04,snV:.12,arpV:.04,echoT:.23,echoFb:.3};
+const MUS={bpmMin:104,bpmMax:160,bassV:.19,leadV:.09,kickV:.2,hatV:.025,snV:.12,arpV:.035,echoT:.23,echoFb:.3,leadBase:220};
 const CHORDS=[0,-4,3,-2];
 const BASSP=[0,12,0,12,-4,8,-4,8,3,15,3,15,-2,10,-2,10];
 const LEADP=[12,-1,7,-1,3,-1,7,-1,12,-1,7,-1,15,-1,12,-1,10,-1,7,-1,5,-1,7,-1,3,-1,2,-1,0,-1,-1,-1];
@@ -281,19 +281,19 @@ function scheduleStep(s,tt,norm){
   if(s%4===0)vOsc('sine',120,tt,.13,MUS.kickV,musicBus,36);
   /* snare on 2 & 4 once the pace picks up */
   if(s%8===4&&norm>.5){vNoise(tt,.09,MUS.snV,musicBus);vOsc('triangle',180,tt,.08,.06,musicBus);}
-  /* hats: offbeat 8ths, 16ths in frenzy */
-  if(fz?(s%2===1):(s%4===2&&norm>.15))vNoise(tt,.03,MUS.hatV,musicBus);
+  /* hats: offbeat 8ths, 16ths in frenzy (short + quiet — no sleigh-bell vibe) */
+  if(fz?(s%2===1):(s%4===2&&norm>.15))vNoise(tt,.02,MUS.hatV,musicBus);
   /* bass: octave pump on 8ths */
   if(s%2===0)vOsc('sawtooth',55*Math.pow(2,BASSP[(s>>1)%16]/12),tt,.14,MUS.bassV,bassLP);
-  /* lead hook */
+  /* lead hook: warm sawtooth an octave below the old chip-square */
   const L=LEADP[s%32];
   if(L>=0){
-    const f=440*Math.pow(2,(L+(fz?12:0))/12),v=MUS.leadV*(0.7+0.6*norm);
-    vOsc('square',f,tt,.28,v,musicLP);
-    vOsc('square',f,tt,.28,v*.5,echo);
+    const f=MUS.leadBase*Math.pow(2,(L+(fz?12:0))/12),v=MUS.leadV*(0.7+0.6*norm);
+    vOsc('sawtooth',f,tt,.3,v,musicLP);
+    vOsc('sawtooth',f,tt,.3,v*.5,echo);
   }
   /* chord arp layer in frenzy */
-  if(fz)vOsc('square',110*Math.pow(2,(ch+12+ARPP[s%4])/12),tt,.09,MUS.arpV,musicBus);
+  if(fz)vOsc('sawtooth',110*Math.pow(2,(ch+12+ARPP[s%4])/12),tt,.09,MUS.arpV,musicBus);
   /* intensity filter, once per bar */
   if(s%16===0&&musicLP){
     const slow=run&&run.slowT>0;
@@ -606,10 +606,20 @@ function win(){
   state=M.WIN;dieT=0;timeScale=.5;
   run.won=true;run.stars=calcStars();
   saveLevelStars(curLvlIdx,run.stars);
-  shake=Math.max(shake,4*S);
-  burst(run.x,run.py,'#ffd23f',18);burst(run.x,run.py,'#22e5ff',18);burst(run.x,run.py,'#ff2ea6',18);
-  tone(660,.12,'triangle',.16);tone(880,.12,'triangle',.14);tone(1320,.2,'sine',.12);
-  if(musicLP&&AC)try{musicLP.frequency.setTargetAtTime(400,AC.currentTime,.15);}catch(e){}
+  /* celebration: fireworks ABOVE/AHEAD of the ship (never on it — must not read as a crash), no shake */
+  const cols=['#ffd23f','#22e5ff','#ff2ea6','#b6ff2e','#ffffff'];
+  for(let i=0;i<5;i++)burst(run.x+(i-1)*70*S,Math.max(60*S,run.py-H*.22-(i%2)*H*.1),cols[i],22);
+  addFloat(t('lvlDone'),W*.5,H*.3,'#ffd23f');
+  /* victory fanfare: ascending A-major arpeggio + closing chord */
+  try{
+    if(ac()&&musicLP){
+      const t0=AC.currentTime,F=[440,554.37,659.25,880];
+      F.forEach((f,i)=>vOsc('triangle',f,t0+i*.11,.22,.2,musicLP));
+      vOsc('triangle',880,t0+.48,.55,.16,musicLP);
+      vOsc('sine',1318.5,t0+.48,.55,.1,musicLP);
+      vOsc('sine',1760,t0+.48,.5,.06,musicLP);
+    }else{tone(660,.12,'triangle',.16);tone(880,.12,'triangle',.14);tone(1320,.2,'sine',.12);}
+  }catch(e){tone(660,.12,'triangle',.16);tone(880,.12,'triangle',.14);}
   if(navigator.vibrate)navigator.vibrate([20,30,20]);
   hide($('hint'));
   trackEvent('level_complete',{level:curLvlIdx,stars:run.stars});
@@ -838,6 +848,30 @@ function drawOrbs(camX){
   }
 }
 
+function drawFinish(camX){
+  if(mode!=='level'||!curLvl||curLvl.type!=='goal'||!run)return;
+  const wx=W*.3+curLvl.target*46*S,sx=wx-camX;
+  if(sx<-80||sx>W+160)return;
+  const cc=corridor(wx);
+  ctx.save();
+  /* gold glow band */
+  ctx.globalAlpha=.28;ctx.fillStyle='#ffd23f';
+  ctx.fillRect(sx-12*S,cc.t,24*S,cc.b-cc.t);
+  /* checkered post */
+  ctx.globalAlpha=.95;
+  const seg=14*S;let k=0;
+  for(let y=cc.t;y<cc.b;y+=seg,k++){
+    ctx.fillStyle=k%2?'#ffd23f':'#ffffff';
+    ctx.fillRect(sx-3.5*S,y,7*S,Math.min(seg,cc.b-y));
+  }
+  /* label above the line */
+  ctx.globalAlpha=1;ctx.textAlign='center';
+  ctx.font='900 '+Math.round(16*S)+'px "Segoe UI",system-ui,sans-serif';
+  ctx.fillStyle='#ffd23f';ctx.shadowColor='#ffd23f';ctx.shadowBlur=14*S;
+  ctx.fillText(t('goalLbl'),sx,cc.t-10*S);
+  ctx.shadowBlur=0;
+  ctx.restore();
+}
 function drawPU(x,y,kind,r){
   if(kind===0){ /* shield: cyan double ring */
     ctx.strokeStyle='#22e5ff';ctx.lineWidth=2.5*S;
@@ -986,6 +1020,7 @@ function render(){
     ag.addColorStop(0,'rgba(70,60,160,.18)');ag.addColorStop(1,'rgba(0,0,0,0)');
     ctx.fillStyle=ag;ctx.fillRect(0,0,W,H);
     drawWalls(camX);
+    drawFinish(camX);
     drawOrbs(camX);
     drawPUs(camX);
     drawTrail(camX);
