@@ -8,6 +8,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>NEONVÅG</title>
+<meta name="description" content="NEONVÅG – ett one-touch neonspel. Håll för att stiga, släpp för att dyka. Daglig bana och oändligt läge. En touch. Noll nåd.">
+<link rel="canonical" href="https://himo777777.github.io/neonvag/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="NEONVÅG">
+<meta property="og:title" content="NEONVÅG">
+<meta property="og:description" content="En touch. Noll nåd. Håll = stig, släpp = dyk. Klarar du dagens bana?">
+<meta property="og:url" content="https://himo777777.github.io/neonvag/">
+<meta property="og:image" content="https://himo777777.github.io/neonvag/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="NEONVÅG">
+<meta name="twitter:description" content="En touch. Noll nåd. One touch. Zero mercy.">
+<meta name="twitter:image" content="https://himo777777.github.io/neonvag/assets/og-image.png">
 <style>
 :root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -129,6 +143,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#fff
    - IAP                 -> sell skin packs (see SKINS)
    Publish path: wrap this file with Capacitor -> Play Store / App Store
    ============================================================ */
+/* ---------- soft-launch config ---------- */
+const PLAY_URL='https://himo777777.github.io/neonvag/';
+const PLAY_URL_SHORT='himo777777.github.io/neonvag';
+const AD_DEMO=false;
+const ANALYTICS_CONFIG={provider:null /* BLOCKED: no analytics provider or keys configured at soft launch.
+   When a provider is chosen (Plausible/Umami/GA4), implement dispatch inside trackEvent(). */};
+window.nvEvents=window.nvEvents||[];
+function trackEvent(name,props){
+  const e={name:name,props:props||{},ts:Date.now(),lang:lang};
+  window.nvEvents.push(e);
+  if(window.nvEvents.length>200)window.nvEvents.shift();
+  try{console.debug('[nv-analytics]',name,e.props);}catch(_){}
+  if(ANALYTICS_CONFIG.provider){/* future dispatch */}
+}
 const cv=document.getElementById('game'),ctx=cv.getContext('2d');
 const $=id=>document.getElementById(id);
 const show=el=>el.classList.remove('hidden'),hide=el=>el.classList.add('hidden');
@@ -139,8 +167,8 @@ const SAFE_TOP=()=>parseFloat(getComputedStyle(document.documentElement).getProp
 
 /* ---------- i18n ---------- */
 const STR={
-sv:{tag:'En touch. Noll nåd.',start:'eller tryck var som helst',how:'HÅLL = stig   ·   SLÄPP = dyk',best:'REKORD',scoreLbl:'POÄNG',share:'DELA REKORD',again:'SPELA IGEN',revive:'FORTSÄTT – ANNONSDEMO',adT:'ANNONS-DEMO',adN:'Här kopplas AdMob / Unity Ads in vid publicering.',newBest:'NYTT REKORD!',surf:'KANTSURF!',paused:'PAUSAD',resume:'TRYCK FÖR ATT FORTSÄTTA',shareT:s=>'Jag fick '+s+' poäng i NEONVÅG – kan du slå mig?',lock:n=>'Låses upp vid '+n+' poäng',copied:'Delningskort sparat!',daily:'DAGENS BANA',endless:'OÄNDLIG',dailyBest:'DAGENS REKORD',dailyTag:'DAGENS BANA',frenzy:'RUS!',shareTD:(s,d)=>'Dagens bana '+d+' i NEONVÅG: '+s+' poäng – slå det om du kan!',stats:(m,o,x)=>'Distans '+m+' m · Kulor '+o+' · Max ×'+x},
-en:{tag:'One touch. Zero mercy.',start:'or tap anywhere',how:'HOLD = rise   ·   RELEASE = dive',best:'BEST',scoreLbl:'SCORE',share:'SHARE SCORE',again:'PLAY AGAIN',revive:'CONTINUE – AD DEMO',adT:'AD DEMO',adN:'AdMob / Unity Ads plugs in here on release.',newBest:'NEW BEST!',surf:'EDGE SURF!',paused:'PAUSED',resume:'TAP TO RESUME',shareT:s=>'I scored '+s+' in NEONVÅG – beat that!',lock:n=>'Unlocks at '+n+' points',copied:'Share card saved!',daily:'DAILY TRACK',endless:'ENDLESS',dailyBest:"TODAY'S BEST",dailyTag:'DAILY TRACK',frenzy:'RUSH!',shareTD:(s,d)=>'Daily track '+d+' in NEONVÅG: '+s+' points – beat it if you can!',stats:(m,o,x)=>'Distance '+m+' m · Orbs '+o+' · Max ×'+x}};
+sv:{tag:'En touch. Noll nåd.',start:'eller tryck var som helst',how:'HÅLL = stig   ·   SLÄPP = dyk',best:'REKORD',scoreLbl:'POÄNG',share:'DELA REKORD',again:'SPELA IGEN',revive:'FORTSÄTT – ANNONSDEMO',adT:'ANNONS-DEMO',adN:'Här kopplas AdMob / Unity Ads in vid publicering.',newBest:'NYTT REKORD!',surf:'KANTSURF!',paused:'PAUSAD',resume:'TRYCK FÖR ATT FORTSÄTTA',shareT:s=>'Jag fick '+s+' poäng i NEONVÅG – kan du slå mig?',lock:n=>'Låses upp vid '+n+' poäng',shShared:'Delat!',shCopied:'Text & länk kopierad!',shCancel:'Delning avbruten',shFail:'Delning misslyckades',daily:'DAGENS BANA',endless:'OÄNDLIG',dailyBest:'DITT DAGSREKORD',dailyTag:'DAGENS BANA',frenzy:'RUS!',shareTD:(s,d)=>'Dagens bana '+d+' i NEONVÅG: '+s+' poäng – slå det om du kan!',stats:(m,o,x)=>'Distans '+m+' m · Kulor '+o+' · Max ×'+x},
+en:{tag:'One touch. Zero mercy.',start:'or tap anywhere',how:'HOLD = rise   ·   RELEASE = dive',best:'BEST',scoreLbl:'SCORE',share:'SHARE SCORE',again:'PLAY AGAIN',revive:'CONTINUE – AD DEMO',adT:'AD DEMO',adN:'AdMob / Unity Ads plugs in here on release.',newBest:'NEW BEST!',surf:'EDGE SURF!',paused:'PAUSED',resume:'TAP TO RESUME',shareT:s=>'I scored '+s+' in NEONVÅG – beat that!',lock:n=>'Unlocks at '+n+' points',shShared:'Shared!',shCopied:'Text & link copied!',shCancel:'Share cancelled',shFail:'Share failed',daily:'DAILY TRACK',endless:'ENDLESS',dailyBest:'YOUR DAILY BEST',dailyTag:'DAILY TRACK',frenzy:'RUSH!',shareTD:(s,d)=>'Daily track '+d+' in NEONVÅG: '+s+' points – beat it if you can!',stats:(m,o,x)=>'Distance '+m+' m · Orbs '+o+' · Max ×'+x}};
 let lang=localStorage.getItem('nv_lang')||'sv';
 const t=k=>STR[lang][k]||k;
 
@@ -190,7 +218,7 @@ const M={MENU:0,PLAY:1,DIE:2,OVER:3,AD:4,PAUSE:5};
 let state=M.MENU,run=null,shake=0,dieT=0,adT=0;
 /* daily track: same seed for everyone, every day */
 const DAY=Math.floor(Date.now()/864e5);
-const DAYSTR=new Date().toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+const dayStr=()=>new Date().toLocaleDateString(lang==='sv'?'sv-SE':'en-GB',{day:'numeric',month:'short'});
 let mode='endless';
 function dailySeed(){let h=Math.imul(DAY,2654435761)>>>0;h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;return(h%100000)/100;}
 function getDailyBest(){return+(localStorage.getItem('nv_d'+DAY)||0);}
@@ -314,24 +342,31 @@ function die(){
   if(mode==='daily'){const db=getDailyBest();if(sc>db){localStorage.setItem('nv_d'+DAY,''+sc);run.newDaily=true;}}
 }
 
-function showOver(){
-  state=M.OVER;runs++;localStorage.setItem('nv_runs',''+runs);
-  /* [MONET] interstitial ad: if(runs%3===0) showInterstitialAd(); */
+function renderOverPanel(){
+  if(!run)return;
   const sc=Math.floor(run.score);
   $('finalScore').textContent=sc;
   $('scoreLabel').textContent=mode==='daily'?t('daily'):t('scoreLbl');
   $('dailyTag').classList.toggle('hidden',mode!=='daily');
-  if(mode==='daily')$('dailyTag').textContent=t('dailyTag')+' · '+DAYSTR+(run.newDaily?' · '+t('newBest'):'');
+  if(mode==='daily')$('dailyTag').textContent=t('dailyTag')+' · '+dayStr()+(run.newDaily?' · '+t('newBest'):'');
   $('bestLabel2').textContent=mode==='daily'?t('dailyBest'):t('best');
   $('finalBest').textContent=mode==='daily'?getDailyBest():hi;
   $('overStats').textContent=t('stats')(Math.floor(run.dist/(46*S)),run.orbs,run.maxMult);
   $('newBest').classList.toggle('hidden',!run.newBest);
-  $('btnRevive').classList.toggle('hidden',run.revUsed);
+  $('btnRevive').classList.toggle('hidden',!AD_DEMO||run.revUsed);
+}
+function showOver(){
+  state=M.OVER;runs++;localStorage.setItem('nv_runs',''+runs);
+  /* [MONET] interstitial ad: if(runs%3===0) showInterstitialAd(); */
+  trackEvent('game_over',{mode:mode,score:Math.floor(run.score),dist:Math.floor(run.dist/(46*S)),orbs:run.orbs,maxMult:run.maxMult,newBest:run.newBest,newDaily:run.newDaily});
+  renderOverPanel();
   show($('over'));show($('toggles'));
 }
 
 function startGame(m){
   mode=m||'endless';
+  trackEvent('game_start',{mode:mode});
+  trackEvent(mode==='daily'?'daily_start':'endless_start',{day:DAY});
   newRun(false,mode==='daily'?dailySeed():undefined);
   state=M.PLAY;
   hide($('menu'));hide($('over'));hide($('pause'));hide($('toggles'));
@@ -346,7 +381,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()
 window.addEventListener('blur',pauseGame);
 
 /* ---------- [MONET] rewarded-ad revive (demo placeholder) ---------- */
-function startAd(){hide($('over'));state=M.AD;adT=3;$('adCount').textContent='3';$('adBar').style.width='100%';show($('ad'));}
+function startAd(){if(!AD_DEMO)return;hide($('over'));state=M.AD;adT=3;$('adCount').textContent='3';$('adBar').style.width='100%';show($('ad'));}
 function endAd(){
   hide($('ad'));
   run.revUsed=true;run.inv=2.6;run.graceX=run.x+1100*S;
@@ -421,15 +456,16 @@ function applyStrings(){
   $('langBtn').textContent=lang.toUpperCase();
   $('soundBtn').textContent=muted?'🔇':'🔊';
   $('hint').textContent=t('how');
+  if(state===M.OVER)renderOverPanel();
 }
 
-$('btnAgain').onclick=()=>{tone(440,.08);startGame(mode);};
+$('btnAgain').onclick=()=>{tone(440,.08);trackEvent('replay_start',{mode:mode});startGame(mode);};
 $('btnDaily').onclick=()=>{tone(440,.08);startGame('daily');};
 $('btnEndless').onclick=()=>{tone(440,.08);startGame('endless');};
 $('btnShare').onclick=()=>{shareScore();};
-$('btnRevive').onclick=()=>{tone(440,.08);startAd();};
+$('btnRevive').onclick=()=>{if(!AD_DEMO)return;tone(440,.08);startAd();};
 $('soundBtn').onclick=()=>{ac();muted=!muted;localStorage.setItem('nv_muted',muted?'1':'0');$('soundBtn').textContent=muted?'🔇':'🔊';if(!muted)tone(660,.08);};
-$('langBtn').onclick=()=>{lang=lang==='sv'?'en':'sv';localStorage.setItem('nv_lang',lang);applyStrings();tone(660,.06);};
+$('langBtn').onclick=()=>{lang=lang==='sv'?'en':'sv';localStorage.setItem('nv_lang',lang);trackEvent('language_change',{to:lang});applyStrings();tone(660,.06);};
 
 /* ---------- rendering ---------- */
 function hexA(h,a){const n=parseInt(h.slice(1),16);return 'rgba('+(n>>16)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
@@ -600,33 +636,59 @@ function shareCard(sc){
   g.fillStyle='rgba(255,255,255,.65)';g.font='700 44px "Segoe UI",system-ui,sans-serif';
   g.fillText(t('scoreLbl'),450,615);
   g.fillStyle='#ffd23f';g.font='800 46px "Segoe UI",system-ui,sans-serif';
-  g.fillText(t('tag'),450,1110);
+  g.fillText(t('tag'),450,1100);
+  g.fillStyle='#22e5ff';g.font='700 40px "Segoe UI",system-ui,sans-serif';
+  g.shadowColor='#22e5ff';g.shadowBlur=24;
+  g.fillText(PLAY_URL_SHORT,450,1164);
+  g.shadowBlur=0;
   return c;
 }
 
 async function shareScore(){
-  const sc=Math.floor(run.score),txt=mode==='daily'?t('shareTD')(sc,DAYSTR):t('shareT')(sc);
+  const sc=Math.floor(run.score);
+  /* PLAY_URL is ALWAYS part of the share text, incl. when a file is attached —
+     several Android targets drop a separate url: member on file shares. */
+  const txt=(mode==='daily'?t('shareTD')(sc,dayStr()):t('shareT')(sc))+'\n'+PLAY_URL;
+  trackEvent('share_click',{mode:mode,score:sc});
   let card=null;
   try{card=shareCard(sc);}catch(e){}
-  if(card){
+  /* 1) native share with image */
+  if(card&&navigator.canShare){
     try{
       const blob=await new Promise(r=>card.toBlob(r,'image/png'));
       const file=new File([blob],'neonvag.png',{type:'image/png'});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
+      if(blob&&navigator.canShare({files:[file]})){
         await navigator.share({files:[file],text:txt,title:'NEONVÅG'});
+        toast(t('shShared'));trackEvent('share_handoff',{kind:'file'});
         return;
       }
+    }catch(e){
+      if(e&&e.name==='AbortError'){toast(t('shCancel'));return;}
+    }
+  }
+  /* 2) native share, text + URL only */
+  if(navigator.share){
+    try{
+      await navigator.share({text:txt,title:'NEONVÅG'});
+      toast(t('shShared'));trackEvent('share_handoff',{kind:'text'});
+      return;
+    }catch(e){
+      if(e&&e.name==='AbortError'){toast(t('shCancel'));return;}
+    }
+  }
+  /* 3) fallback: download card + copy full text incl. URL */
+  if(card){
+    try{
+      const a=document.createElement('a');
+      a.href=card.toDataURL('image/png');a.download='neonvag-rekord.png';a.click();
     }catch(e){}
   }
-  if(navigator.share){
-    try{await navigator.share({text:txt,title:'NEONVÅG',url:location.href});return;}catch(e){}
+  try{
+    await navigator.clipboard.writeText(txt);
+    toast(t('shCopied'));trackEvent('share_fallback',{kind:card?'copy+card':'copy'});
+  }catch(e){
+    toast(t('shFail'));trackEvent('share_fallback',{kind:'failed'});
   }
-  if(card){
-    const a=document.createElement('a');
-    a.href=card.toDataURL('image/png');a.download='neonvag-rekord.png';a.click();
-  }
-  try{await navigator.clipboard.writeText(txt);}catch(e){}
-  toast(t('copied'));
 }
 
 /* ---------- main loop ---------- */
@@ -655,6 +717,7 @@ function loop(now){
 newRun(true);
 applyStrings();
 refreshDots();
+if(!AD_DEMO)hide($('btnRevive'));
 show($('menu'));
 requestAnimationFrame(loop);
 
