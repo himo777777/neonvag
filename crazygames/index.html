@@ -115,7 +115,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#fff
     <div class="overStats" id="overStats"></div>
     <button class="btn btn-primary hidden" id="btnNext"></button>
     <button class="btn btn-primary" id="btnAgain"></button>
-    <button class="btn" id="btnShare"></button>
+    <button class="btn hidden" id="btnShare"></button>
     <button class="btn hidden" id="btnMenu"></button>
     <button class="btn btn-support hidden" id="btnSupport2"></button>
     <button class="btn btn-ad" id="btnRevive"></button>
@@ -188,8 +188,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#fff
    Publish path: wrap this file with Capacitor -> Play Store / App Store
    ============================================================ */
 /* ---------- soft-launch config ---------- */
-const PLAY_URL='https://himo777777.github.io/neonvag/';
-const PLAY_URL_SHORT='himo777777.github.io/neonvag';
+const PLAY_URL=''; /* portal build: no external link */
+const PLAY_URL_SHORT='';
 const AD_DEMO=false;
 /* Support/payment link (e.g. a Stripe Payment Link). The button stays hidden
    until this is replaced with a real https:// URL. */
@@ -688,7 +688,7 @@ function renderOverPanel(){
   if(!run)return;
   const sc=Math.floor(run.score),isLvl=(mode==='level');
   $('finalScore').textContent=sc;
-  $('btnShare').classList.toggle('hidden',isLvl);
+  $('btnShare').classList.add('hidden'); /* portal build: no outbound links */
   $('btnNext').classList.toggle('hidden',!(isLvl&&run.won&&curLvlIdx+1<LEVELS.length));
   $('btnMenu').classList.remove('hidden');
   $('btnMenu').textContent=isLvl?t('levels'):t('menu');
@@ -898,7 +898,7 @@ function buildPrivDoc(){
    '<h4>CONTACT</h4>'+PRIVACY_INFO.email+
    '<h4>PURPOSE</h4>Anonymous gameplay statistics used only to improve the game.'+
    '<h4>DATA COLLECTED</h4>Game events only (game started, game over with score and distance, retry, share attempted, share succeeded, support clicked), an anonymous random device id, and optional campaign tags (ref, utm_source, utm_campaign, utm_content). No names, no email addresses, no cross-site tracking, no session recording.'+
-   '<h4>PROVIDER</h4>PostHog, EU cloud (eu.i.posthog.com).'+
+   
    '<h4>RETENTION</h4>'+PRIVACY_INFO.retention+
    '<h4>WITHDRAWING CONSENT</h4>Open PRIVACY &amp; ANALYTICS in the main menu and choose to play without analytics. All future analytics stop immediately and the local device id is deleted.';
 }
